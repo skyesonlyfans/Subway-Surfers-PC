@@ -1,0 +1,828 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Subway Surfers - Arcade World Tour Collection</title>
+  <link rel="icon" type="image/jpeg" href="./icon/icon.jpeg">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;800;900&display=swap');
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      user-select: none;
+      font-family: 'Outfit', -apple-system, BlinkMacSystemFont, sans-serif;
+    }
+
+    body, html {
+      width: 100vw;
+      height: 100vh;
+      background: #03050a;
+      overflow: hidden;
+    }
+
+    /* Core Application Frames Container */
+    #app-viewport {
+      width: 100vw;
+      height: 100vh;
+      position: relative;
+    }
+
+    iframe.game-viewport {
+      width: 100%;
+      height: 100%;
+      border: none;
+      outline: none;
+      display: block;
+    }
+
+    /* Liquid Glass Overlay UI */
+    #liquid-menu-overlay {
+      position: fixed;
+      top: 0; left: 0; width: 100vw; height: 100vh;
+      z-index: 20000;
+      background: radial-gradient(circle at 50% 30%, rgba(20, 30, 55, 0.88) 0%, rgba(4, 6, 12, 0.98) 100%);
+      backdrop-filter: blur(35px);
+      -webkit-backdrop-filter: blur(35px);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      align-items: center;
+      padding: 30px 50px;
+      color: #fff;
+      overflow-y: auto;
+    }
+
+    .liquid-glass-panel {
+      background: rgba(18, 24, 38, 0.45);
+      backdrop-filter: blur(28px) saturate(190%);
+      -webkit-backdrop-filter: blur(28px) saturate(190%);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      box-shadow: 0 30px 60px rgba(0, 0, 0, 0.5), 
+                  inset 0 1px 0 rgba(255, 255, 255, 0.2);
+      border-radius: 24px;
+    }
+
+    .header-container { 
+      text-align: center;
+      margin-top: 10px;
+    }
+
+    .menu-title {
+      font-size: 52px;
+      font-weight: 900;
+      letter-spacing: 6px;
+      text-transform: uppercase;
+      background: linear-gradient(135deg, #00f0ff 0%, #7000ff 50%, #ff007f 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin: 0;
+      filter: drop-shadow(0 0 25px rgba(0, 240, 255, 0.3));
+    }
+
+    .menu-subtitle {
+      font-size: 13px;
+      letter-spacing: 3px;
+      color: rgba(255, 255, 255, 0.6);
+      text-transform: uppercase;
+      margin-top: 6px;
+      font-weight: 600;
+    }
+
+    .port-credit {
+      display: inline-block;
+      margin-top: 8px;
+      font-size: 12px;
+      letter-spacing: 1px;
+      color: rgba(255, 255, 255, 0.85);
+      background: rgba(255, 255, 255, 0.06);
+      padding: 4px 14px;
+      border-radius: 20px;
+      border: 1px solid rgba(255, 255, 255, 0.15);
+    }
+
+    .port-credit a {
+      color: #00f0ff;
+      text-decoration: none;
+      font-weight: 700;
+    }
+
+    .menu-body-split {
+      display: flex;
+      gap: 30px;
+      align-items: stretch;
+      justify-content: center;
+      width: 100%;
+      max-width: 1150px;
+      margin: 20px 0;
+    }
+
+    /* Version Selection Column */
+    .version-select-card {
+      flex: 1.2;
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .card-title {
+      font-size: 14px;
+      font-weight: 800;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: #00f0ff;
+      margin-bottom: 16px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .version-list {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      max-height: 340px;
+      overflow-y: auto;
+      padding-right: 6px;
+    }
+
+    .version-list::-webkit-scrollbar {
+      width: 6px;
+    }
+    .version-list::-webkit-scrollbar-thumb {
+      background: rgba(0, 240, 255, 0.3);
+      border-radius: 4px;
+    }
+
+    .version-btn {
+      padding: 16px 20px;
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 16px;
+      color: rgba(255, 255, 255, 0.85);
+      cursor: pointer;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .version-btn:hover, .version-btn.active {
+      background: rgba(0, 240, 255, 0.12);
+      border-color: #00f0ff;
+      transform: translateX(6px) scale(1.01);
+      box-shadow: 0 8px 25px rgba(0, 240, 255, 0.2);
+      color: #ffffff;
+    }
+
+    .version-info {
+      text-align: left;
+    }
+
+    .version-name {
+      font-size: 16px;
+      font-weight: 800;
+      letter-spacing: 0.5px;
+    }
+
+    .version-tag {
+      font-size: 12px;
+      color: rgba(255, 255, 255, 0.5);
+      margin-top: 3px;
+    }
+
+    .version-badge {
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: 1px;
+      padding: 4px 12px;
+      border-radius: 20px;
+      background: rgba(255, 255, 255, 0.08);
+      color: rgba(255, 255, 255, 0.6);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .version-btn.active .version-badge {
+      background: #00f0ff;
+      color: #000;
+      border-color: #00f0ff;
+      box-shadow: 0 0 12px rgba(0, 240, 255, 0.4);
+    }
+
+    /* Controller Guide Card */
+    .controller-guide-card {
+      flex: 1;
+      padding: 24px;
+    }
+
+    .tab-selector {
+      display: flex;
+      gap: 12px;
+      margin-bottom: 20px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      padding-bottom: 12px;
+    }
+
+    .tab-btn {
+      padding: 8px 16px;
+      border-radius: 10px;
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      cursor: pointer;
+      color: rgba(255, 255, 255, 0.5);
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid transparent;
+      transition: all 0.2s;
+    }
+
+    .tab-btn.active {
+      color: #00f0ff;
+      background: rgba(0, 240, 255, 0.1);
+      border-color: rgba(0, 240, 255, 0.3);
+    }
+
+    .controller-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 12px;
+    }
+
+    .control-item {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      background: rgba(0, 0, 0, 0.25);
+      padding: 12px 16px;
+      border-radius: 14px;
+      border: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    .btn-icon {
+      width: 34px; height: 34px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 900;
+      font-size: 13px;
+    }
+
+    .btn-xbox-a { background: #107c41; color: #fff; }
+    .btn-xbox-dpad { background: #333; color: #00f0ff; border: 1px solid #555; }
+    .btn-ps5-cross { background: #003791; color: #fff; }
+
+    /* Action Footer Bar */
+    .action-bar {
+      width: 100%;
+      max-width: 1150px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 20px;
+    }
+
+    .start-launch-btn {
+      flex: 1;
+      padding: 18px 30px;
+      background: linear-gradient(135deg, #00f0ff 0%, #7000ff 100%);
+      border: none;
+      border-radius: 16px;
+      color: #fff;
+      font-size: 16px;
+      font-weight: 900;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      cursor: pointer;
+      box-shadow: 0 10px 30px rgba(0, 240, 255, 0.3);
+      transition: all 0.3s ease;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .start-launch-btn:hover {
+      transform: translateY(-2px) scale(1.01);
+      box-shadow: 0 15px 40px rgba(0, 240, 255, 0.5);
+    }
+
+    .tips-footer {
+      flex: 1;
+      padding: 16px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    /* In-Game Top Left Switcher Pill */
+    #ingame-menu-pill {
+      position: fixed;
+      top: 16px;
+      left: 16px;
+      z-index: 10000;
+      display: none;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .pill-btn {
+      background: rgba(18, 24, 38, 0.85);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      border-radius: 30px;
+      padding: 10px 18px;
+      color: #fff;
+      font-size: 13px;
+      font-weight: 800;
+      letter-spacing: 1px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      box-shadow: 0 8px 25px rgba(0, 0, 0, 0.5);
+      transition: all 0.25s ease;
+    }
+
+    .pill-btn:hover {
+      background: rgba(0, 240, 255, 0.25);
+      border-color: #00f0ff;
+      transform: translateY(2px);
+    }
+
+    .pill-btn-danger:hover {
+      background: rgba(255, 0, 85, 0.3);
+      border-color: #ff0055;
+    }
+
+    /* Loading Screen Overlay */
+    #loading-overlay {
+      position: fixed;
+      top: 0; left: 0; width: 100vw; height: 100vh;
+      z-index: 25000;
+      background: radial-gradient(circle at center, rgba(10, 15, 28, 0.98) 0%, rgba(3, 5, 10, 1) 100%);
+      backdrop-filter: blur(30px);
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      color: #fff;
+      transition: opacity 0.5s ease;
+    }
+
+    .loader-rings {
+      position: relative;
+      width: 90px; height: 90px;
+      margin-bottom: 24px;
+    }
+
+    .loader-ring-outer {
+      position: absolute; width: 100%; height: 100%;
+      border: 3px solid transparent;
+      border-top-color: #00f0ff;
+      border-bottom-color: #7000ff;
+      border-radius: 50%;
+      animation: spin 1.4s cubic-bezier(0.68, -0.55, 0.27, 1.55) infinite;
+    }
+
+    .loader-ring-inner {
+      position: absolute; top: 12px; left: 12px;
+      width: 66px; height: 66px;
+      border: 3px solid transparent;
+      border-left-color: #ff007f;
+      border-right-color: #00f0ff;
+      border-radius: 50%;
+      animation: spin-reverse 1s linear infinite;
+    }
+
+    @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+    @keyframes spin-reverse { 0% { transform: rotate(360deg); } 100% { transform: rotate(0deg); } }
+
+    .progress-bar-container {
+      width: 320px; height: 6px;
+      background: rgba(255, 255, 255, 0.08);
+      border-radius: 10px;
+      overflow: hidden;
+      margin: 16px 0;
+    }
+
+    .progress-bar-fill {
+      width: 0%; height: 100%;
+      background: linear-gradient(90deg, #00f0ff, #7000ff, #ff007f);
+      transition: width 0.2s ease;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Top In-Game Menu Pill Container -->
+  <div id="ingame-menu-pill">
+    <div class="pill-btn" id="btn-return-menu">
+      <span style="color:#00f0ff;">✛</span>
+      <span>Change City / Menu</span>
+    </div>
+    <div class="pill-btn pill-btn-danger" id="btn-quit-ingame" title="Close Launcher">
+      <span style="color:#ff0055;">✕</span>
+      <span>Quit</span>
+    </div>
+  </div>
+
+  <!-- Game Viewport Container -->
+  <div id="app-viewport">
+    <iframe id="game-frame" class="game-viewport" src="" allow="autoplay; fullscreen"></iframe>
+  </div>
+
+  <!-- Main Arcade Selector Menu -->
+  <div id="liquid-menu-overlay">
+    <div class="header-container">
+      <h1 class="menu-title">Subway Surfers</h1>
+      <div class="menu-subtitle">World Tour PC Port</div>
+      <div class="port-credit">Ported by <a href="https://instagram.com/SkyeProbably" target="_blank">@SkyeProbably</a></div>
+    </div>
+
+    <div class="menu-body-split">
+      <!-- HTML Version Selector (Filtered for available 3 games) -->
+      <div class="liquid-glass-panel version-select-card">
+        <div class="card-title">
+          <span>Select World Tour Version</span>
+          <span style="font-size: 11px; opacity: 0.6; color: #fff;">Navigate via Mouse / D-Pad</span>
+        </div>
+        <div class="version-list" id="version-btn-list">
+          <!-- Dynamically Populated -->
+        </div>
+      </div>
+
+      <!-- Controller Guide -->
+      <div class="liquid-glass-panel controller-guide-card">
+        <div class="tab-selector">
+          <div class="tab-btn active" id="tab-xbox">Xbox Controller</div>
+          <div class="tab-btn" id="tab-ps5">PS5 Controller</div>
+        </div>
+
+        <div class="controller-grid" id="controller-controls-map">
+          <!-- Dynamic control scheme -->
+        </div>
+      </div>
+    </div>
+
+    <div class="action-bar">
+      <div class="liquid-glass-panel tips-footer">
+        <div id="cycling-tip-text" style="font-size: 13px; color: rgba(255,255,255,0.8);">Loading gameplay hints...</div>
+        <div style="font-size: 11px; color: #00f0ff; font-weight: 700; white-space: nowrap;">D-Pad / Mouse Controls</div>
+      </div>
+
+      <button class="start-launch-btn" id="btn-start-game">
+        <span>Launch Selected City</span>
+        <span style="font-size: 12px; opacity: 0.8;">(A) / Enter</span>
+      </button>
+
+      <button class="pill-btn pill-btn-danger" id="btn-close-app" style="height: 100%; padding: 0 24px; border-radius: 16px; font-weight: 800; text-transform: uppercase; letter-spacing: 1.5px;">
+        <span style="color:#ff0055; font-size: 16px;">✕</span>
+        <span>Exit</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- Animated Loading Overlay -->
+  <div id="loading-overlay">
+    <div class="loader-rings">
+      <div class="loader-ring-outer"></div>
+      <div class="loader-ring-inner"></div>
+    </div>
+    <div style="font-size: 16px; font-weight: 800; letter-spacing: 2px; text-transform: uppercase;" id="loading-title-text">Initializing Game Engine</div>
+    <div class="progress-bar-container">
+      <div class="progress-bar-fill" id="loading-bar-fill"></div>
+    </div>
+    <div id="loading-subtext" style="font-size: 12px; color: rgba(255,255,255,0.5);">Preparing city assets...</div>
+  </div>
+
+  <script>
+    // Available HTML Versions in Port Collection (3 Options)
+    const VERSIONS = [
+      { 
+        name: "Subway Surfers: Beijing", 
+        tag: "World Tour Edition", 
+        file: "./ssbeijing.html", 
+        badge: "Beijing" 
+      },
+      { 
+        name: "Subway Surfers: SF", 
+        tag: "World Tour Edition", 
+        file: "./subwaysurferssanfrancisco.html", 
+        badge: "San Francisco" 
+      },
+      { 
+        name: "Subway Surfers: Havana", 
+        tag: "World Tour Edition", 
+        file: "./subwaysurfershavana.html", 
+        badge: "Havana" 
+      }
+    ];
+
+    const GAME_TIPS = [
+      "Tip: Combine a Jump with an immediate Roll to quick-land under obstacles.",
+      "Tip: Activate your Hoverboard using (A) or Cross button for crash protection.",
+      "Tip: Ported with full gamepad support by @SkyeProbably on Instagram!",
+      "Tip: Collect Jetpacks and Super Sneakers to gain vertical advantage.",
+      "Tip: Use the D-Pad or Left Analog Stick for rapid lane-switching reaction times."
+    ];
+
+    let selectedVersionIdx = 0;
+    let currentTip = 0;
+    let menuDismissed = false;
+    let navDebounce = false;
+
+    // Build Version Selection List
+    const versionListElem = document.getElementById('version-btn-list');
+    VERSIONS.forEach((v, idx) => {
+      const btn = document.createElement('div');
+      btn.className = `version-btn ${idx === 0 ? 'active' : ''}`;
+      btn.dataset.index = idx;
+      btn.innerHTML = `
+        <div class="version-info">
+          <div class="version-name">${v.name}</div>
+          <div class="version-tag">${v.tag}</div>
+        </div>
+        <div class="version-badge">${v.badge}</div>
+      `;
+      btn.addEventListener('click', () => {
+        setSelectedIndex(idx);
+      });
+      versionListElem.appendChild(btn);
+    });
+
+    function setSelectedIndex(idx) {
+      selectedVersionIdx = idx;
+      document.querySelectorAll('.version-btn').forEach((btn, i) => {
+        btn.classList.toggle('active', i === selectedVersionIdx);
+      });
+    }
+
+    // Cycle Gameplay Tips
+    setInterval(() => {
+      currentTip = (currentTip + 1) % GAME_TIPS.length;
+      document.getElementById('cycling-tip-text').textContent = GAME_TIPS[currentTip];
+    }, 4000);
+
+    // Controller Map Toggles
+    function updateControllerGuide(type) {
+      document.getElementById('tab-xbox').classList.toggle('active', type === 'xbox');
+      document.getElementById('tab-ps5').classList.toggle('active', type === 'ps5');
+      const grid = document.getElementById('controller-controls-map');
+
+      if (type === 'xbox') {
+        grid.innerHTML = `
+          <div class="control-item">
+            <div class="btn-icon btn-xbox-dpad">✛</div>
+            <div><div style="font-size:12px; font-weight:700;">Left Stick / D-Pad</div><div style="font-size:11px; opacity:0.5;">Switch Lane / Jump / Roll / Menu Nav</div></div>
+          </div>
+          <div class="control-item">
+            <div class="btn-icon btn-xbox-a">A</div>
+            <div><div style="font-size:12px; font-weight:700;">A Button</div><div style="font-size:11px; opacity:0.5;">Launch City / Activate Hoverboard</div></div>
+          </div>
+        `;
+      } else {
+        grid.innerHTML = `
+          <div class="control-item">
+            <div class="btn-icon btn-xbox-dpad">✛</div>
+            <div><div style="font-size:12px; font-weight:700;">Left Stick / D-Pad</div><div style="font-size:11px; opacity:0.5;">Switch Lane / Jump / Roll / Menu Nav</div></div>
+          </div>
+          <div class="control-item">
+            <div class="btn-icon btn-ps5-cross">✕</div>
+            <div><div style="font-size:12px; font-weight:700;">Cross Button</div><div style="font-size:11px; opacity:0.5;">Launch City / Activate Hoverboard</div></div>
+          </div>
+        `;
+      }
+    }
+
+    document.getElementById('tab-xbox').addEventListener('click', () => updateControllerGuide('xbox'));
+    document.getElementById('tab-ps5').addEventListener('click', () => updateControllerGuide('ps5'));
+    updateControllerGuide('xbox');
+
+    // Loading Overlay Logic
+    function startLoadingSequence(targetFile, onComplete) {
+      const overlay = document.getElementById('loading-overlay');
+      const iframe = document.getElementById('game-frame');
+      
+      overlay.style.display = 'flex';
+      overlay.style.opacity = '1';
+      document.getElementById('loading-bar-fill').style.width = '0%';
+      document.getElementById('loading-title-text').textContent = `Loading ${VERSIONS[selectedVersionIdx].name}`;
+
+      iframe.src = targetFile;
+
+      let progress = 0;
+      const progressInterval = setInterval(() => {
+        if (progress < 90) {
+          progress += Math.random() * 15;
+          if (progress > 90) progress = 90;
+          document.getElementById('loading-bar-fill').style.width = progress + '%';
+        }
+      }, 70);
+
+      const finishLoading = () => {
+        clearInterval(progressInterval);
+        document.getElementById('loading-bar-fill').style.width = '100%';
+        document.getElementById('loading-subtext').textContent = 'Engine ready!';
+
+        // Inject Gamepad Mapper into loaded Game Iframe
+        injectGamepadMapperIntoIframe(iframe);
+
+        setTimeout(() => {
+          overlay.style.opacity = '0';
+          setTimeout(() => {
+            overlay.style.display = 'none';
+            if (onComplete) onComplete();
+          }, 500);
+        }, 300);
+      };
+
+      iframe.onload = finishLoading;
+      setTimeout(finishLoading, 4000); // Safety fallback timeout
+    }
+
+    // Function to ensure gamepad-mapper is properly injected into the active iframe
+    function injectGamepadMapperIntoIframe(iframe) {
+      try {
+        const frameDoc = iframe.contentDocument || iframe.contentWindow.document;
+        if (!frameDoc) return;
+
+        // Check if script is already present
+        if (frameDoc.getElementById('gamepad-mapper-script')) return;
+
+        const scriptElem = frameDoc.createElement('script');
+        scriptElem.id = 'gamepad-mapper-script';
+        scriptElem.src = './gamepad-mapper.js';
+        
+        // Fallback embedded mapper logic if external script fail-safe is needed
+        scriptElem.onerror = function() {
+          const inlineScript = frameDoc.createElement('script');
+          inlineScript.textContent = `
+            (function() {
+              const buttonState = {};
+              const AXIS_THRESHOLD = 0.5;
+
+              function triggerKey(key, keyCode) {
+                const target = document.activeElement || document.body;
+                ['keydown', 'keyup'].forEach((type, idx) => {
+                  setTimeout(() => {
+                    target.dispatchEvent(new KeyboardEvent(type, {
+                      key: key, code: key, keyCode: keyCode, which: keyCode,
+                      bubbles: true, cancelable: true
+                    }));
+                  }, idx * 100);
+                });
+              }
+
+              function poll() {
+                const gps = navigator.getGamepads ? navigator.getGamepads() : [];
+                for (const gp of gps) {
+                  if (!gp) continue;
+                  
+                  const checkBtn = (idx, key, code) => {
+                    const pressed = gp.buttons[idx] && gp.buttons[idx].pressed;
+                    if (pressed && !buttonState['b' + idx]) {
+                      buttonState['b' + idx] = true;
+                      triggerKey(key, code);
+                    } else if (!pressed) {
+                      buttonState['b' + idx] = false;
+                    }
+                  };
+
+                  checkBtn(0, 'Space', 32);   // A Button -> Jump / Board
+                  checkBtn(2, 'Space', 32);   // X Button -> Jump / Board
+                  checkBtn(12, 'ArrowUp', 38);   // D-Pad Up -> Jump
+                  checkBtn(13, 'ArrowDown', 40); // D-Pad Down -> Roll
+                  checkBtn(14, 'ArrowLeft', 37); // D-Pad Left -> Move Left
+                  checkBtn(15, 'ArrowRight', 39);// D-Pad Right -> Move Right
+
+                  const axisX = gp.axes[0];
+                  const axisY = gp.axes[1];
+                  const checkAxis = (cond, name, key, code) => {
+                    if (cond && !buttonState[name]) {
+                      buttonState[name] = true;
+                      triggerKey(key, code);
+                    } else if (!cond) {
+                      buttonState[name] = false;
+                    }
+                  };
+
+                  checkAxis(axisX < -AXIS_THRESHOLD, 'aLeft', 'ArrowLeft', 37);
+                  checkAxis(axisX > AXIS_THRESHOLD, 'aRight', 'ArrowRight', 39);
+                  checkAxis(axisY < -AXIS_THRESHOLD, 'aUp', 'ArrowUp', 38);
+                  checkAxis(axisY > AXIS_THRESHOLD, 'aDown', 'ArrowDown', 40);
+                }
+                requestAnimationFrame(poll);
+              }
+              requestAnimationFrame(poll);
+            })();
+          `;
+          frameDoc.body.appendChild(inlineScript);
+        };
+
+        frameDoc.body.appendChild(scriptElem);
+        console.log("[Gamepad Mapper] Injected into active game viewport.");
+      } catch (err) {
+        console.warn("[Gamepad Mapper] Auto-injection notice:", err);
+      }
+    }
+
+    // Dismiss Initial Loading Screen
+    setTimeout(() => {
+      const overlay = document.getElementById('loading-overlay');
+      overlay.style.opacity = '0';
+      setTimeout(() => overlay.style.display = 'none', 500);
+    }, 1200);
+
+    // Launch Game Function
+    function launchSelectedGame() {
+      menuDismissed = true;
+      document.getElementById('liquid-menu-overlay').style.display = 'none';
+      document.getElementById('ingame-menu-pill').style.display = 'flex';
+
+      startLoadingSequence(VERSIONS[selectedVersionIdx].file, () => {
+        try {
+          document.getElementById('game-frame').contentWindow.focus();
+        } catch (e) {}
+      });
+    }
+
+    // Return to Menu Function
+    function returnToMenu() {
+      menuDismissed = false;
+      document.getElementById('liquid-menu-overlay').style.display = 'flex';
+      document.getElementById('ingame-menu-pill').style.display = 'none';
+    }
+
+    // Close Launcher / Quit Application Logic
+    function closeLauncher() {
+      // Check if running inside Electron wrapper
+      if (window.electronAPI && typeof window.electronAPI.close === 'function') {
+        window.electronAPI.close();
+      } else if (window.ipcRenderer) {
+        window.ipcRenderer.send('app-close');
+      } else {
+        // Fallback for standard browser tab/window
+        window.close();
+      }
+    }
+
+    document.getElementById('btn-start-game').addEventListener('click', launchSelectedGame);
+    document.getElementById('btn-return-menu').addEventListener('click', returnToMenu);
+    document.getElementById('btn-close-app').addEventListener('click', closeLauncher);
+    document.getElementById('btn-quit-ingame').addEventListener('click', closeLauncher);
+
+    // Keyboard Menu Navigation
+    window.addEventListener('keydown', (e) => {
+      if (menuDismissed) return;
+
+      if (e.key === 'ArrowDown' || e.key === 's') {
+        setSelectedIndex((selectedVersionIdx + 1) % VERSIONS.length);
+      } else if (e.key === 'ArrowUp' || e.key === 'w') {
+        setSelectedIndex((selectedVersionIdx - 1 + VERSIONS.length) % VERSIONS.length);
+      } else if (e.key === 'Enter' || e.key === ' ') {
+        launchSelectedGame();
+      } else if (e.key === 'Escape') {
+        closeLauncher();
+      }
+    });
+
+    // Gamepad Menu Navigation Polling
+    function pollGamepadMenu() {
+      if (!menuDismissed) {
+        const gamepads = navigator.getGamepads ? navigator.getGamepads() : [];
+        const gp = gamepads[0];
+
+        if (gp && !navDebounce) {
+          const axisY = gp.axes[1];
+
+          if (axisY > 0.5 || (gp.buttons[13] && gp.buttons[13].pressed)) { // Down
+            setSelectedIndex((selectedVersionIdx + 1) % VERSIONS.length);
+            triggerDebounce();
+          } else if (axisY < -0.5 || (gp.buttons[12] && gp.buttons[12].pressed)) { // Up
+            setSelectedIndex((selectedVersionIdx - 1 + VERSIONS.length) % VERSIONS.length);
+            triggerDebounce();
+          } else if (gp.buttons[0] && gp.buttons[0].pressed) { // A / Cross
+            launchSelectedGame();
+            triggerDebounce();
+          }
+        }
+      }
+
+      requestAnimationFrame(pollGamepadMenu);
+    }
+
+    function triggerDebounce() {
+      navDebounce = true;
+      setTimeout(() => { navDebounce = false; }, 200);
+    }
+
+    requestAnimationFrame(pollGamepadMenu);
+  </script>
+</body>
+</html>

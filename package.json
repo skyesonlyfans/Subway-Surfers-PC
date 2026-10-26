@@ -1,0 +1,40 @@
+{
+"name": "subway-surfers-pc",
+"version": "1.0.0",
+"description": "Subway Surfers PC Port Collection",
+"main": "main.js",
+"scripts": {
+"start": "electron .",
+"build:exe": "electron-builder --win nsis"
+},
+"author": "Skye",
+"license": "ISC",
+"devDependencies": {
+"electron": "^28.2.0",
+"electron-builder": "^24.9.0"
+},
+"build": {
+"appId": "com.skye.subwaysurfers",
+"productName": "Subway Surfers PC",
+"win": {
+"target": "nsis",
+"icon": "icon.ico"
+},
+"nsis": {
+"oneClick": false,
+"allowToChangeInstallationDirectory": true,
+"createDesktopShortcut": true,
+"createStartMenuShortcut": true
+},
+"files": [
+"main.js",
+"index.html",
+"gamepad-mapper.js",
+"ssbeijing.html",
+"subwaysurferssanfrancisco.html",
+"subwaysurfershavana.html",
+"icon.ico",
+"icon//*"
+]
+}
+}
